@@ -8,7 +8,7 @@
 #include <string.h>
 #include "error.h"
 
-void exit_printing_error(int exit_code, char* function_name, char* message){
+void exit_printing_error(int exit_code, char* function_name, char* message) {
 
     fprintf(stderr, "[ERROR] Function: %s\n        Message: %s.\n Error number: %d", function_name, message, strerror(errno));
     exit(exit_code);
@@ -34,6 +34,12 @@ Error* new_error(int exit_code, char* function_name, char* message) {
 }
 
 
+void CheckError(Error* input) {
+
+    if (input != NULL) {
+        exit_printing_error(input->exit_code, input->function_name, input->message);
+    }
+}
 
 
 

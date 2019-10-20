@@ -8,23 +8,6 @@
 #include <stdio.h>
 
 
-typedef struct {
-
-    cl_device_type device_type;
-
-    cl_platform_id open_cl_platform_id;
-    cl_uint num_of_open_cl_platforms;
-
-    cl_device_id open_cl_device_id;
-    cl_uint num_of_open_cl_devices;
-
-    cl_context open_cl_context;
-
-    cl_command_queue command_queue
-
-} OpenCLComputationUnit;
-
-
 OpenCLComputationUnit *NewOpenCLComputationUnit() {
 
     OpenCLComputationUnit *output = malloc(sizeof(OpenCLComputationUnit));
@@ -106,25 +89,28 @@ void OpenCLCommandQueueConfiguration(OpenCLComputationUnit *input, Error **err) 
 
     cl_int error;
 
-    input->command_queue = clCreateCommandQueue(input->open_cl_context, input->open_cl_device_id, 0, &err);
+    input->command_queue = clCreateCommandQueueWithProperties(input->open_cl_context, input->open_cl_device_id, 0, &error);
 
+    switch (error) {
+        case CL_INVALID_CONTEXT:
+            *err = new_error(EXIT_FAILURE, "clCreateCommandQueueWithProperties", "The context is not valid.");
+            break;
+        case CL_INVALID_DEVICE:
+            *err = new_error(EXIT_FAILURE, "clCreateCommandQueueWithProperties","Either the device is not valid or it is not associated with the context.");
+            break;
+        case CL_INVALID_QUEUE_PROPERTIES:
+            *err = new_error(EXIT_FAILURE, "clCreateCommandQueueWithProperties", "The device does not support the properties specified in the properties list.");
+            break;
+        case CL_INVALID_VALUE:
+            *err = new_error(EXIT_FAILURE, "clCreateCommandQueueWithProperties", "The properties list is not valid.");
+            break;
+        case CL_OUT_OF_HOST_MEMORY:
+            *err = new_error(EXIT_FAILURE, "clCreateContext", "The host is unable to allocate OpenCL resources.");
+            break;
+        default:
+            *err = NULL;
+    }
 }
-
-
-cl_command_queue command_queue;
-command_queue = clCreateCommandQueue(
-        context,
-        // a valid context
-        device_id, // a valid device associated with the context
-        0,
-        // properties for the queue - not used here
-        &err
-        // the return code
-);
-
-
-
-
 
 void ExecuteComputationOnGPU(OpenCLComputationUnit *input) {
 
@@ -139,5 +125,7 @@ void ExecuteComputationOnGPU(OpenCLComputationUnit *input) {
     OpenCLContextConfiguration(input, &err);
     CheckError(err);
 
+    OpenCLCommandQueueConfiguration(input, &err);
+    CheckError(err);
 
 }

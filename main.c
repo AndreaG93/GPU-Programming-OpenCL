@@ -2,6 +2,8 @@
 #include "opencl_utility.h"
 
 int main() {
-    get_open_cl_device_id();
+    OpenCLComputationUnit* x = NewOpenCLComputationUnit();
+    ExecuteComputationOnGPU(x);
+
     return 0;
 }

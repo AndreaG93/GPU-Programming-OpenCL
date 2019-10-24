@@ -3,7 +3,7 @@
 //
 
 #include "opencl_utility.h"
-#include "error.h"
+#include "error/error.h"
 #include <CL/cl.h>
 #include <stdio.h>
 

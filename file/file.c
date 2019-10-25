@@ -5,66 +5,46 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <err.h>
 #include "file.h"
-#include "../error/error.h"
 
-typedef struct {
-    void *data;
-    struct stat *file_stat;
-} c_file;
+File *read_all(char *filename) {
 
-c_file *alloc_c_file() {
-
-    errno = 0;
-    c_file *output = malloc(sizeof(c_file));
-    if (output == NULL) {
-        perror("malloc");
-    }
-
-    return output;
-}
-
-
-c_file *read_data_and_properties_from_file(char *pathname, c_err *error) {
-
+    File *output;
     int file_descriptor;
-    c_file *output = alloc_c_file();
 
-    if (access(pathname, R_OK) != 0)
-        perror("access");
-
-    file_descriptor = open(pathname, O_RDONLY);
-    if (file_descriptor == -1) {
-        perror("open");
+    if (access(filename, R_OK) != 0) {
+        err(EXIT_FAILURE, "access");
     }
 
-    if (fstat(file_descriptor, output->file_stat) != 0) {
-        perror("fstat");
-    }
+    file_descriptor = open(filename, O_RDONLY);
+    if (file_descriptor == -1)
+        err(EXIT_FAILURE, "open");
 
-    output->data = calloc(output->file_stat->st_size, sizeof(char));
-    if (output->data == NULL) {
-        perror("calloc");
-    }
+    output = malloc(sizeof(File));
+    if (output == NULL)
+        err(EXIT_FAILURE, "malloc");
+
+    output->file_stat = malloc(sizeof(stat));
+    if (output->file_stat == NULL)
+        err(EXIT_FAILURE, "malloc");
 
 
-    for (;;) {
-        size_t read_byte = read(file_descriptor, output->data, output->file_stat->st_size);
+    if (fstat(file_descriptor, output->file_stat) != 0)
+        err(EXIT_FAILURE, "fstat");
 
-        if (read_byte == 0 || read_byte == output->file_stat->st_size)
-            break;
-        else if (read_byte == -1) {
-            perror("close");
-        }
-    }
+    output->data = malloc(output->file_stat->st_size);
+    if (output->data == NULL)
+        err(EXIT_FAILURE, "malloc");
 
-    if (close(file_descriptor) == -1) {
-        perror("close");
-    }
+    if (read(file_descriptor, output->data, output->file_stat->st_size) != output->file_stat->st_size)
+        err(EXIT_FAILURE, "read");
+
+    if (close(file_descriptor) == -1)
+        err(EXIT_FAILURE, "close");
 
     return output;
 }

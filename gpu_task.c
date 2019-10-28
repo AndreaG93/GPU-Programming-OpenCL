@@ -11,13 +11,13 @@
 #include <err.h>
 
 const char *KernelSource = "__kernel void square(                    \n"
-                           "   __global float* input,                \n"
-                           "   __global float* output,               \n"
+                           "   __global unsigned int* input,                \n"
+                           "   __global unsigned int* output,               \n"
                            "   const unsigned int count)             \n"
                            "{                                        \n"
                            "   int i = get_global_id(0);             \n"
                            "   if(i < count)                         \n"
-                           "       output[i] = input[i] * input[i];  \n"
+                           "       output[i] = input[i] + input[i];  \n"
                            "}                                        \n"
                            "\n";
 
